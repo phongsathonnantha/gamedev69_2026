@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computer Game Development 2026 — Stage Select</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:        #0b0e17;
+    --panel:     #131829;
+    --panel-edge:#232b47;
+    --ink:       #e9ecf5;
+    --ink-dim:   #616a8c;
+    --accent:    #7cffcb;
+    --accent-dim:#3a5a52;
+    --locked:    #33395a;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #14213a 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    min-height:100vh;
+    padding:64px 20px 40px;
+  }
+
+  a{ color:inherit; }
+
+  .hero{
+    text-align:center;
+    max-width:720px;
+    margin:0 auto 72px;
+  }
+
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--accent);
+    margin:0 0 18px;
+    text-transform:uppercase;
+  }
+
+  .title{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(28px, 6vw, 44px);
+    line-height:1.5;
+    margin:0 0 22px;
+    color:var(--ink);
+    text-shadow: 0 0 24px var(--accent-dim);
+  }
+
+  .sub{
+    font-size:14px;
+    color:var(--ink-dim);
+    line-height:1.7;
+    margin:0;
+  }
+
+  /* ---- stage map ---- */
+
+  .map{
+    position:relative;
+    max-width:840px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns: 1fr 44px 1fr;
+    row-gap:56px;
+  }
+
+  .spine{
+    grid-column:2;
+    grid-row: 1 / -1;
+    width:2px;
+    margin:0 auto;
+    background-image: repeating-linear-gradient(
+      to bottom, var(--accent-dim) 0 10px, transparent 10px 20px
+    );
+  }
+
+  .node{
+    grid-column:2;
+    align-self:center;
+    justify-self:center;
+    z-index:2;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+    border:2px solid var(--accent);
+    box-shadow: 0 0 18px var(--accent-dim);
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+  }
+
+  .node.is-locked{
+    border-color:var(--locked);
+    box-shadow:none;
+  }
+
+  .stage{
+    grid-row: span 1;
+    display:flex;
+    align-items:center;
+  }
+
+  .stage--left{ grid-column:1; justify-content:flex-end; text-align:right; }
+  .stage--right{ grid-column:3; justify-content:flex-start; text-align:left; }
+
+  .card{
+    width:100%;
+    max-width:320px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
+    padding:20px 22px;
+  }
+
+  .card.is-locked{
+    background:transparent;
+    border-style:dashed;
+    border-color:var(--panel-edge);
+  }
+
+  .lab-tag{
+    font-family:'Press Start 2P', monospace;
+    font-size:10px;
+    color:var(--accent);
+    display:block;
+    margin-bottom:10px;
+  }
+
+  .card.is-locked .lab-tag{ color:var(--ink-dim); }
+
+  .card h2{
+    font-size:17px;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+
+  .card p{
+    font-size:13px;
+    color:var(--ink-dim);
+    margin:0 0 16px;
+    line-height:1.6;
+  }
+
+  .missions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .stage--right .missions{ align-items:flex-start; }
+  .stage--left .missions{ align-items:flex-end; }
+
+  .play{
+    display:inline-block;
+    font-size:12px;
+    font-weight:700;
+    text-decoration:none;
+    color:var(--bg);
+    background:var(--accent);
+    padding:8px 14px;
+    border-radius:6px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+
+  .play:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px var(--accent-dim);
+  }
+
+  .locked-status{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+
+  footer{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:11px;
+    margin-top:80px;
+    letter-spacing:.05em;
+  }
+
+  /* ---- mobile: collapse to single column ---- */
+  @media (max-width: 680px){
+    .map{
+      grid-template-columns: 40px 1fr;
+      row-gap:36px;
+    }
+    .spine{ grid-column:1; }
+    .node{ grid-column:1; width:32px; height:32px; font-size:8px; }
+    .stage--left, .stage--right{
+      grid-column:2;
+      justify-content:flex-start;
+      text-align:left;
+    }
+    .stage--left .missions,
+    .stage--right .missions{ align-items:flex-start; }
+    .card{ max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="hero">
+    <p class="eyebrow">Computer Game Development · 2026</p>
+    <h1 class="title">PHONGSATHON NANTHA</h1>
+    <p class="sub">683380307-9</p>
+    <p class="sub">รวมผลงาน Lab 1–6 ตลอดภาคเรียน<br>เลือกด่านที่ปลดล็อกแล้วเพื่อเข้าไปดูผลงาน</p>
+  </header>
+
+  <main class="map">
+    <div class="spine"></div>
+
+    <!-- LAB 01 -->
+    <div class="node" style="grid-row:1">01</div>
+    <section class="stage stage--left" style="grid-row:1">
+      <div class="card">
+        <span class="lab-tag">LAB 01</span>
+        <h2>แนะนำตัวเอง</h2>
+        <p>Self Introduction</p>
+        <a class="play" href="lab1.html">เข้าสู่ด่าน →</a>
+      </div>
+    </section>
+
+    <!-- LAB 02 -->
+    <div class="node" style="grid-row:2">02</div>
+    <section class="stage stage--right" style="grid-row:2">
+      <div class="card">
+        <span class="lab-tag">LAB 02</span>
+        <h2>My First 2D Game</h2>
+        <p>เกม 2D เกมแรก แบ่งเป็น 2 ภารกิจ</p>
+        <div class="missions">
+          <a class="play" href="game21.html">ภารกิจ 1 →</a>
+          <a class="play" href="game22.html">ภารกิจ 2 →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAB 03 -->
+    <div class="node is-locked" style="grid-row:3">03</div>
+    <section class="stage stage--left" style="grid-row:3">
+      <div class="card is-locked">
+        <span class="lab-tag">LAB 03</span>
+        <h2>Coming Soon</h2>
+        <span class="locked-status">🔒 ยังไม่ปลดล็อก</span>
+      </div>
+    </section>
+
+    <!-- LAB 04 -->
+    <div class="node is-locked" style="grid-row:4">04</div>
+    <section class="stage stage--right" style="grid-row:4">
+      <div class="card is-locked">
+        <span class="lab-tag">LAB 04</span>
+        <h2>Coming Soon</h2>
+        <span class="locked-status">🔒 ยังไม่ปลดล็อก</span>
+      </div>
+    </section>
+
+    <!-- LAB 05 -->
+    <div class="node is-locked" style="grid-row:5">05</div>
+    <section class="stage stage--left" style="grid-row:5">
+      <div class="card is-locked">
+        <span class="lab-tag">LAB 05</span>
+        <h2>Coming Soon</h2>
+        <span class="locked-status">🔒 ยังไม่ปลดล็อก</span>
+      </div>
+    </section>
+
+    <!-- LAB 06 -->
+    <div class="node is-locked" style="grid-row:6">06</div>
+    <section class="stage stage--right" style="grid-row:6">
+      <div class="card is-locked">
+        <span class="lab-tag">LAB 06</span>
+        <h2>Coming Soon</h2>
+        <span class="locked-status">🔒 ยังไม่ปลดล็อก</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>Computer Game Development — 2026</footer>
+
+</body>
+</html>
